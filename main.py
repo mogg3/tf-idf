@@ -174,16 +174,12 @@ def calculate_tf(book):
 def calculate_df(book):
     df = {}
     for word in book:
+        df[word] = 0
         for file in os.listdir('./corpus'):
             with open('./corpus/'+file, 'rb') as book_file:
                 book_file = pickle.load(book_file)
                 if word in book_file:
-                    if word in df:
-                        df[word] += 1
-                    else:
-                        df[word] = 1
-                else:
-                    df[word] = 0
+                    df[word] += 1
     return df
 
 
@@ -232,6 +228,8 @@ def main():
          'these questions _as_ problems, the particular turn or twist that Nietzsche gives to their elucidation, may ' \
          'then perhaps strike him, not only as valuable, but as absolutely necessary.'
 
+    c1 = clean_book(c1)
+    c2 = clean_book(c2)
     compare_books(c1, c2)
 
 main()
