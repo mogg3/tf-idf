@@ -112,10 +112,10 @@ def lemmatize(words_list):
 
 
 def clean_book(book_lines):
-    data = remove_unwanted_text(book_lines)
-    data = remove_line_br(data)
-    data = to_string(data)
-    data = no_symbols(data)
+    #data = remove_unwanted_text(book_lines)
+    #data = remove_line_br(data)
+    #data = to_string(data)
+    data = no_symbols(book_lines)
     data = to_word_list(data)
     data = no_blanks(data)
     data = remove_one_letter_words(data)
@@ -171,19 +171,22 @@ def calculate_tf(book):
     return tf
 
 
-def calculate_df(book):
+def get_corpus():
+    corpus_list = []
+    for file in os.listdir('./corpus'):
+        with open('./corpus/' + file, 'rb') as book_file:
+            book_file = pickle.load(book_file)
+            corpus_list.append(book_file)
+    return corpus_list
+
+
+def calculate_df(book, corpus):
     df = {}
-    for word in book:
-        for file in os.listdir('./corpus'):
-            with open('./corpus/'+file, 'rb') as book_file:
-                book_file = pickle.load(book_file)
-                if word in book_file:
-                    if word in df:
-                        df[word] += 1
-                    else:
-                        df[word] = 1
-                else:
-                    df[word] = 0
+    for i, word in enumerate(book):
+        df[word] = 0
+        for corpus_document in corpus:
+            if word in corpus_document:
+                df[word] += 1
     return df
 
 
@@ -202,26 +205,22 @@ def calculate_tf_idf(tf, idf):
     return tf_idf
 
 
-def compare_books(book1, book2):
-    # books = get_cleaned_books()
-    # book1 = books[0]
-    # book2 = books[1]
-
+def compare_books(book1, book2, corpus):
     tf1 = calculate_tf(book1)
-    df1 = calculate_df(book1)
+    df1 = calculate_df(book1, corpus)
     idf1 = calculate_idf(df1)
     tf_idf1 = calculate_tf_idf(tf1, idf1)
     tf_idf1 = sorted(tf_idf1.items(), key=lambda kv: kv[1], reverse=True)
     tf_idf1 = dict(tf_idf1)
-    print(tf_idf1)
+    print("TF-IDF 1: ", tf_idf1)
 
     tf2 = calculate_tf(book2)
-    df2 = calculate_df(book2)
+    df2 = calculate_df(book2, corpus)
     idf2 = calculate_idf(df2)
     tf_idf2 = calculate_tf_idf(tf2, idf2)
     tf_idf2 = sorted(tf_idf2.items(), key=lambda kv: kv[1], reverse=True)
     tf_idf2 = dict(tf_idf2)
-    print(tf_idf2)
+    print("TF-IDF 2: ", tf_idf2)
 
 
 def main():
@@ -232,6 +231,17 @@ def main():
          'these questions _as_ problems, the particular turn or twist that Nietzsche gives to their elucidation, may ' \
          'then perhaps strike him, not only as valuable, but as absolutely necessary.'
 
-    compare_books(c1, c2)
+    # c1_c = clean_book(c1)
+    # print(f"Document 1: {c1_c}")
+    # c2_c = clean_book(c2)
+    # print(f"Document 2: {c2_c}")
 
-main()
+    corpus = get_corpus()
+    books = get_cleaned_books()
+    book1 = books[0]
+    book2 = books[1]
+    compare_books(book1, book2, corpus)
+
+
+if __name__ == '__main__':
+    main()
