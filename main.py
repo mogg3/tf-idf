@@ -25,16 +25,18 @@ def get_book(title, j):
     search_field.send_keys(title.lower())
     search_field.send_keys(Keys.RETURN)
     results = WebDriverWait(driver, 10).until(EC.visibility_of_all_elements_located((By.CLASS_NAME, 'booklink')))
-    #titles = [result.find_element_by_class_name("title").text for result in results]
+    titles = [result.find_element_by_class_name("title").text for result in results]
 
-    # for i, book in enumerate(titles):
-    #     print(f"{i + 1}. " + book)
+    for i, book in enumerate(titles):
+        print(f"{i + 1}. " + book)
 
-    #choice = int(input("What book were you thinking of?(1-25): "))
+    choice = int(input("What book were you thinking of?(1-25): "))
 
-    chosen_book = results[j+1]
+    chosen_book = results[choice+1]
     chosen_book.click()
-    WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.LINK_TEXT, 'Plain Text UTF-8'))).click()
+    text = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.LINK_TEXT, 'Plain Text UTF-8')))
+    text.click()
+    time.sleep(5)
     book_text = driver.page_source
     with open(f"documents/book{j+1}.py", "w") as text_file:
         text_file.write(book_text)
@@ -139,22 +141,30 @@ def corpus_clean():
                 pickle.dump(book, file)
 
 
-def get_cleaned_books():
-    cleaned_books = []
-    for i in range(2):
-        with open(f"documents/book{i + 1}.py", 'rb') as file:
-            cleaned_book = pickle.load(file)
-        cleaned_books.append(cleaned_book)
-    return cleaned_books
+def get_documents():
+    with open("documents/book1.py", "rb") as book1:
+        book1 = pickle.load(book1)
+    with open("documents/book2.py", "rb") as book2:
+        book2 = pickle.load(book2)
+    return book1, book2
 
 
-def get_books():
+def save_books():
     for i in range(2):
-        #search = input("Search: ")
-        book_lines = get_book("twilight", i)
+        search = input("Search: ")
+        book_lines = get_book(search, i)
         cleaned = clean_book(book_lines)
         with open(f'documents/book{i+1}.py', 'wb') as file:
             pickle.dump(cleaned, file)
+
+
+def get_corpus():
+    corpus_list = []
+    for file in os.listdir('./corpus'):
+        with open('./corpus/' + file, 'rb') as book_file:
+            book_file = pickle.load(book_file)
+            corpus_list.append(book_file)
+    return corpus_list
 
 
 def calculate_tf(book):
@@ -164,22 +174,18 @@ def calculate_tf(book):
             tf[word] += 1
         else:
             tf[word] = 1
-
     for key in tf:
         tf[key] = tf[key]/len(book)
-
     return tf
 
 
-def calculate_df(book):
+def calculate_df(book, corpus):
     df = {}
     for word in book:
         df[word] = 0
-        for file in os.listdir('./corpus'):
-            with open('./corpus/'+file, 'rb') as book_file:
-                book_file = pickle.load(book_file)
-                if word in book_file:
-                    df[word] += 1
+        for corpus_document in corpus:
+            if word in corpus_document:
+                df[word] += 1
     return df
 
 
@@ -198,38 +204,73 @@ def calculate_tf_idf(tf, idf):
     return tf_idf
 
 
-def compare_books(book1, book2):
-    # books = get_cleaned_books()
-    # book1 = books[0]
-    # book2 = books[1]
+def get_total_vocab(book1, book2, corpus):
+    total_vocab = []
+    for corpus_document in corpus:
+        total_vocab += corpus_document
+    total_vocab += book1 + book2
+    return list(set(total_vocab))
 
+
+def vectorize_book(current_book, total_vocab):
+    book_vector = []
+    for word in total_vocab:
+        if word in current_book:
+            current_tfidf = current_book[word]
+            value = current_tfidf
+        else:
+            value = 0
+
+        book_vector.append(value)
+
+    return book_vector
+
+
+def get_cosine_similarity(a, b):
+    print("Len a = ", len(a))
+    print("Len b = ", len(b))
+
+    dot_product = sum([a[i]*b[i] for i in range(len(a))])
+    absolute = math.sqrt(sum([i**2 for i in a]) * sum([i**2 for i in b]))
+
+    return math.degrees(math.acos(dot_product/absolute))
+
+
+def compare_books(book1, book2, corpus):
     tf1 = calculate_tf(book1)
-    df1 = calculate_df(book1)
+    print("tf1 calculated")
+    df1 = calculate_df(book1, corpus)
+    print("df1 calculated")
     idf1 = calculate_idf(df1)
+    print("idf1 calculated")
     tf_idf1 = calculate_tf_idf(tf1, idf1)
-    tf_idf1 = sorted(tf_idf1.items(), key=lambda kv: kv[1], reverse=True)
-    tf_idf1 = dict(tf_idf1)
-    print(tf_idf1)
+    print("tf_idf1 calculated")
 
     tf2 = calculate_tf(book2)
-    df2 = calculate_df(book2)
+    print("tf2 calculated")
+    df2 = calculate_df(book2, corpus)
+    print("df2 calculated")
     idf2 = calculate_idf(df2)
+    print("idf2 calculated")
     tf_idf2 = calculate_tf_idf(tf2, idf2)
-    tf_idf2 = sorted(tf_idf2.items(), key=lambda kv: kv[1], reverse=True)
-    tf_idf2 = dict(tf_idf2)
-    print(tf_idf2)
+    print("tf_idf2 calculated")
+
+    total_vocab = get_total_vocab(book1, book2, corpus)
+    print("vocabulary calculated")
+
+    book1_vector = vectorize_book(tf_idf1, total_vocab)
+    print("book vecter 1 calculated")
+    book2_vector = vectorize_book(tf_idf2, total_vocab)
+    print("book vecter 2 calculated")
+    cosine_similarity = get_cosine_similarity(book1_vector, book2_vector)
+    print(cosine_similarity)
 
 
 def main():
-    c1 = 'To the aspiring student of Nietzsche, however, it ought not to be necessary to become an immediate convert ' \
-         'in order to be interested in the treasure of thought which Nietzsche here lavishes upon us.'
-    c2 = 'For such a man it will be quite difficult enough to regard the questions raised in this work as actual ' \
-         'problems. Once, however, he has succeeded in doing this, and has given his imagination time to play round ' \
-         'these questions _as_ problems, the particular turn or twist that Nietzsche gives to their elucidation, may ' \
-         'then perhaps strike him, not only as valuable, but as absolutely necessary.'
+    save_books()
+    book1, book2 = get_documents()
+    corpus = get_corpus()
+    compare_books(book1, book1, corpus)
 
-    c1 = clean_book(c1)
-    c2 = clean_book(c2)
-    compare_books(c1, c2)
 
 main()
