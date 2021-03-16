@@ -1,4 +1,4 @@
-from calculations import calculate_tf, calculate_df, calculate_idf, calculate_tf_idf, get_total_vocab, vectorize_book, \
+from app.calculations import calculate_tf, calculate_df, calculate_idf, calculate_tf_idf, get_total_vocab, vectorize_book, \
     calculate_cosine_similarity
 
 

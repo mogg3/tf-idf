@@ -25,7 +25,7 @@ def save_books():
 
 def get_corpus():
     corpus_list = []
-    for file in os.listdir('./corpus'):
+    for file in os.listdir('corpus'):
         with open('./corpus/' + file, 'rb') as book_file:
             book_file = pickle.load(book_file)
             corpus_list.append(book_file)

@@ -7,7 +7,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 
 def get_book(title, j):
-    driver = webdriver.Chrome('./chromedriver')
+    driver = webdriver.Chrome('chromedriver')
     driver.get('https://www.gutenberg.org/')
     search_field = driver.find_element_by_id('menu-book-search')
     search_field.send_keys(title.lower())

@@ -88,7 +88,7 @@ def clean_book(book_lines):
 
 
 def corpus_clean():
-    for book_file in os.listdir('./corpus'):
+    for book_file in os.listdir('corpus'):
         with open('./corpus/'+book_file, 'r', encoding='utf-8') as file:
             book = file.readlines()
             book = remove_unwanted_text(book)

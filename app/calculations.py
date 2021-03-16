@@ -29,7 +29,7 @@ def calculate_df(book, corpus):
 
 
 def calculate_idf(df):
-    n = len(os.listdir('./corpus'))
+    n = len(os.listdir('corpus'))
     for key in df:
         df[key] = math.log(n/(df[key]+1), 10)
     idf = df
