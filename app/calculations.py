@@ -11,7 +11,7 @@ def calculate_tf(book):
             tf[word] = 1
     for key in tf:
         tf[key] = tf[key]/len(book)
-    print("tf1 calculated")
+    print("tf calculated")
     return tf
 
 
@@ -19,7 +19,6 @@ def calculate_df(book, corpus):
     df = {}
     print("Calculating df....")
     for i, word in enumerate(book):
-        print(f"{i+1}/{len(book)}")
         df[word] = 0
         for corpus_document in corpus:
             if word in corpus_document:
@@ -29,7 +28,7 @@ def calculate_df(book, corpus):
 
 
 def calculate_idf(df):
-    n = len(os.listdir('corpus'))
+    n = len(os.listdir('app/corpus'))
     for key in df:
         df[key] = math.log(n/(df[key]+1), 10)
     idf = df
@@ -42,6 +41,7 @@ def calculate_tf_idf(tf, idf):
     for key in tf:
         tf_idf[key] = tf[key] * idf[key]
     print("tfidf calculated")
+    print("-"*20)
     return tf_idf
 
 
@@ -64,14 +64,13 @@ def vectorize_book(current_book, total_vocab):
 
         book_vector.append(value)
     print("Book vectorized")
+    print("-"*20)
     return book_vector
 
 
 def calculate_cosine_similarity(a, b):
-    print("Len a = ", len(a))
-    print("Len b = ", len(b))
-
     dot_product = sum([a[i]*b[i] for i in range(len(a))])
     absolute = math.sqrt(sum([i**2 for i in a]) * sum([i**2 for i in b]))
     print("Cosine similarity calculated")
+    print("-"*20)
     return math.degrees(math.acos(dot_product/absolute))

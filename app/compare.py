@@ -18,18 +18,18 @@ def compare_books(book1, book2, corpus):
     book2_vector = vectorize_book(tf_idf2, total_vocab)
     cosine_similarity = calculate_cosine_similarity(book1_vector, book2_vector)
 
-    appreciation = None
+    estimate = None
 
     if cosine_similarity == 0:
-        appreciation = "Böckerna är likadana"
+        estimate = "Böckerna är likadana"
     elif 0 < cosine_similarity <= 10:
-        appreciation = "Böckerna har väldigt många likheter"
+        estimate = "Böckerna har väldigt många likheter"
     elif 10 < cosine_similarity <= 45:
-        appreciation = "Böckerna har många likheter"
+        estimate = "Böckerna har många likheter"
     elif 45 < cosine_similarity <= 60:
-        appreciation = "Böckerna har vissa likheter"
+        estimate = "Böckerna har vissa likheter"
     elif 60 < cosine_similarity <= 80:
-        appreciation = "Böckerna har få likheter"
+        estimate = "Böckerna har få likheter"
     elif 80 < cosine_similarity:
-        appreciation = "Böckerna har väldigt få likheter"
-    return appreciation, cosine_similarity
+        estimate = "Böckerna har väldigt få likheter"
+    return estimate, cosine_similarity

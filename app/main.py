@@ -6,9 +6,10 @@ def main():
     save_books()
     book1, book2 = get_documents()
     corpus = get_corpus()
-    appreciation, cosine_similarity = compare_books(book1, book2, corpus)
-    print("Appreciation: ", appreciation)
+    estimate, cosine_similarity = compare_books(book1, book2, corpus)
+    print("Estimate: ", estimate)
     print("Cosine similarity: ", cosine_similarity)
 
 
-main()
+if __name__ == "__main__":
+    main()
