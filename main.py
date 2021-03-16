@@ -1,24 +1,14 @@
 import math
 import os
 import pickle
-import time
-
-import nltk
-from nltk.stem import WordNetLemmatizer
 from selenium import webdriver
-from selenium import webdriver  # for webdriver
-from selenium.webdriver.support.ui import WebDriverWait  # for implicit and explict waits
-from selenium.webdriver.chrome.options import Options  # for suppressing the browser
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC, expected_conditions
+from selenium.webdriver.support import expected_conditions as EC
 
 
 def get_book(title, j):
-    # option = webdriver.ChromeOptions()
-    # option.add_argument('headless')
-    # driver = webdriver.Chrome('./chromedriver', options=option)
     driver = webdriver.Chrome('./chromedriver')
     driver.get('https://www.gutenberg.org/')
     search_field = driver.find_element_by_id('menu-book-search')
@@ -36,7 +26,6 @@ def get_book(title, j):
     chosen_book.click()
     text = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.LINK_TEXT, 'Plain Text UTF-8')))
     text.click()
-    time.sleep(5)
     book_text = driver.page_source
     with open(f"documents/book{j+1}.py", "w") as text_file:
         text_file.write(book_text)
@@ -52,6 +41,7 @@ def remove_unwanted_text(lines):
         if "*** END OF" in line or "***END OF" in line:
             end = len(lines) - i
     book = lines[start:-end:]
+    print("Unwanted text from book body removed...")
     return book
 
 
@@ -60,6 +50,7 @@ def remove_line_br(book):
     for i, line in enumerate(book):
         if "\n" in line:
             book[i] = line.rstrip("\n")
+    print("Line breaks removed...")
     return book
 
 
@@ -67,6 +58,7 @@ def to_string(book):
     book_str = ""
     for line in book:
         book_str += line + " "
+    print("Stringified!")
     return book_str
 
 
@@ -80,10 +72,12 @@ def no_symbols(book_string):
             unsymboled_string += " "
         else:
             unsymboled_string += character.lower()
+    print("Symbols removed...")
     return unsymboled_string
 
 
 def to_word_list(book_string):
+    print("Words listed...")
     return book_string.split(" ")
 
 
@@ -95,22 +89,21 @@ def no_blanks(word_list):
     for i, line in enumerate(no_blanks_word_list):
         if " " in line:
             no_blanks_word_list[i] = line.rstrip(" ")
+    print("Blanks removed...")
     return no_blanks_word_list
 
 
 def remove_one_letter_words(words_list):
     no_one_letter_words_list = [word for word in words_list if len(word) > 1]
+    print("One letter words removed...")
     return no_one_letter_words_list
 
 
 def remove_stopwords(word_list):
     stopwords = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'youre', 'youve', 'youll', 'youd', 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 'shes', 'her', 'hers', 'herself', 'it', 'its', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'thatll', 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', 'dont', 'should', 'shouldve', 'now', 'd', 'll', 'm', 'o', 're', 've', 'y', 'ain', 'aren', 'arent', 'couldn', 'couldnt', 'didn', 'didnt', 'doesn', 'doesnt', 'hadn', 'hadnt', 'hasn', 'hasnt', 'haven', 'havent', 'isn', 'isnt', 'ma', 'mightn', 'mightnt', 'mustn', 'mustnt', 'needn', 'neednt', 'shan', 'shant', 'shouldn', 'shouldnt', 'wasn', 'wasnt', 'weren', 'werent', 'won', 'wont', 'wouldn', 'wouldnt']
     no_stopwords_word_list = [word for word in word_list if word not in stopwords]
+    print("Stopwords removed...")
     return no_stopwords_word_list
-
-
-def lemmatize(words_list):
-    pass
 
 
 def clean_book(book_lines):
@@ -121,8 +114,9 @@ def clean_book(book_lines):
     data = to_word_list(data)
     data = no_blanks(data)
     data = remove_one_letter_words(data)
-    data = remove_stopwords(data)
-    return data
+    cleaned_data = remove_stopwords(data)
+    print("Cleaned!")
+    return cleaned_data
 
 
 def corpus_clean():
@@ -181,7 +175,8 @@ def calculate_tf(book):
 
 def calculate_df(book, corpus):
     df = {}
-    for word in book:
+    for i, word in enumerate(book):
+        print(f"{i+1}/{len(book)}")
         df[word] = 0
         for corpus_document in corpus:
             if word in corpus_document:
@@ -226,7 +221,7 @@ def vectorize_book(current_book, total_vocab):
     return book_vector
 
 
-def get_cosine_similarity(a, b):
+def calculate_cosine_similarity(a, b):
     print("Len a = ", len(a))
     print("Len b = ", len(b))
 
@@ -262,15 +257,32 @@ def compare_books(book1, book2, corpus):
     print("book vecter 1 calculated")
     book2_vector = vectorize_book(tf_idf2, total_vocab)
     print("book vecter 2 calculated")
-    cosine_similarity = get_cosine_similarity(book1_vector, book2_vector)
-    print(cosine_similarity)
+    cosine_similarity = calculate_cosine_similarity(book1_vector, book2_vector)
+
+    appreciation = None
+
+    if cosine_similarity == 0:
+        appreciation = "Böckerna är likadana"
+    elif 0 < cosine_similarity <= 10:
+        appreciation = "Böckerna har väldigt många likheter"
+    elif 10 < cosine_similarity <= 45:
+        appreciation = "Böckerna har många likheter"
+    elif 45 < cosine_similarity <= 60:
+        appreciation = "Böckerna har vissa likheter"
+    elif 60 < cosine_similarity <= 80:
+        appreciation = "Böckerna har få likheter"
+    elif 80 < cosine_similarity:
+        appreciation = "Böckerna har väldigt få likheter"
+    return appreciation, cosine_similarity
 
 
 def main():
     save_books()
     book1, book2 = get_documents()
     corpus = get_corpus()
-    compare_books(book1, book1, corpus)
+    appreciation, cosine_similarity = compare_books(book1, book2, corpus)
+    print("Appreciation: ", appreciation)
+    print("Cosine similarity: ", cosine_similarity)
 
 
 main()
